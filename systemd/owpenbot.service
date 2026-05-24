@@ -1,0 +1,15 @@
+[Unit]
+Description=Owpenbot WhatsApp Bridge
+After=opencode-serve.service
+Wants=opencode-serve.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node /tmp/owpenbot/dist/cli.js start
+WorkingDirectory=/tmp/owpenbot
+Restart=on-failure
+RestartSec=10
+Environment=HOME=/home/daryl
+
+[Install]
+WantedBy=default.target

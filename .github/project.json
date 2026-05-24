@@ -1,0 +1,6 @@
+---
+name: whatsapp-opencode-bridge
+about: WhatsApp messaging bridge to a local LLM via owpenbot and opencode serve
+topics: whatsapp, llm, opencode, owpenbot, ollama, ai-bridge
+license: mit
+---

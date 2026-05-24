@@ -1,0 +1,14 @@
+[Unit]
+Description=OpenCode Headless Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/daryl/.opencode/bin/opencode serve --port 4096
+Restart=on-failure
+RestartSec=10
+Environment=HOME=/home/daryl
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,8 @@
+.env
+*.log
+*.png
+credentials/
+*.db
+*.sqlite
+node_modules/
+dist/
