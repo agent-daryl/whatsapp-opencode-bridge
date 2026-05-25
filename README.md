@@ -204,6 +204,38 @@ WhatsApp replays offline messages on reconnect. Messages from numbers not on you
 
 Baileys WebSocket teardown can take time. If `systemctl --user stop` hangs, use `systemctl --user kill --signal=9 owpenbot`.
 
+### Prompt fails silently / no reply
+
+The most common cause is `opencode serve` v1.15.x returning an HTML page instead of valid JSON on the chat endpoint, which breaks owpenbot's session.prompt() call. See the **Direct Ollama Shim** section below. Check logs at `~/.owpenbot/logs/owpenbot.log` for `"prompt failed"` entries.
+
+### Direct Ollama Shim (opencode SDK bypass)
+
+Starting with opencode 1.15.x, the `opencode serve` HTTP endpoint returns HTML responses that break the owpenbot SDK integration, causing silent `"prompt failed"` errors. The fix is to replace `/tmp/owpenbot/src/opencode.ts` with a custom shim that bypasses `opencode serve` entirely and calls Ollama directly via `fetch()` to `http://<ollama-host>:11434/api/chat`.
+
+**Two bugs were patched in the shim:**
+
+1. **Stale sessions after restart** — The in-memory `sessions` Map is wiped on every owpenbot restart, but persisted session IDs from the SQLite database still reference old sessions. The original shim threw `"Session not found"` and died. The fix auto-creates a fresh session entry if the ID isn't found in memory, so old DB session IDs work seamlessly after restart.
+
+2. **TypeScript compilation errors** — Three type mismatches between the shim and owpenbot's internal API:
+   - `session.create` must return `Promise<{ id: string }>` — wrapped in `Promise.resolve()`
+   - `event.subscribe` must return `Promise<{ stream: AsyncIterable<unknown> }>` — fixed generator return type
+   - `client.permission` must be non-optional — added to the Client type definition
+
+After patching, rebuild with `pnpm run build` in `/tmp/owpenbot`, then restart:
+
+```bash
+cd /tmp/owpenbot && pnpm run build
+systemctl --user restart opencode-serve owpenbot
+```
+
+With the shim active, the architecture no longer routes through `opencode serve`. The data flow is:
+
+```
+WhatsApp → owpenbot (shim) → Ollama /api/chat → Reply
+```
+
+The `opencode-serve` systemd service remains running for compatibility with other tooling, but owpenbot no longer depends on it for inference.
+
 ## Security
 
 The opencode serve API listens on `127.0.0.1` only. If you expose it beyond localhost (e.g., via tunnel, reverse proxy, or `0.0.0.0`), set `OPENCODE_SERVER_PASSWORD` in `.env`. The API can execute arbitrary tools and exposes full session history.
