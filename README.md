@@ -254,3 +254,8 @@ The opencode serve API listens on `127.0.0.1` only. If you expose it beyond loca
 - [opencode](https://github.com/opencode-ai/opencode) — headless LLM server
 - [Baileys](https://github.com/WhiskeySockets/Baileys) — WhatsApp Web SDK
 - [Ollama](https://ollama.com/) — local model inference
+
+
+---
+
+> **Privacy note:** Internal IP addresses originally present in this repository have been replaced with placeholder addresses in the `10.10.0.0/16` range to protect the owner's private network topology. Functionality is unchanged; configure real addresses via environment variables where supported.
